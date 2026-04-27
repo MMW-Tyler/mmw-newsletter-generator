@@ -27,7 +27,11 @@ const MAX_TOKENS_SUMMARY = 300;
 // ---------- Middleware ----------
 app.use(express.json({ limit: '4mb' })); // 4mb to safely cover HTML template uploads + master records
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+// Guard: never let static files intercept API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) return next();
+  express.static(path.join(__dirname, 'public'))(req, res, next);
+});
 
 // ---------- External clients ----------
 let supabase = null;
@@ -887,18 +891,18 @@ app.get('/api/sections/meta', (req, res) => {
 });
 
 // ============================================================
+// SPA fallback (must be before error handler)
+// ============================================================
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ============================================================
 // ERROR HANDLER
 // ============================================================
 app.use((err, req, res, next) => {
   console.error('[unhandled]', err);
   res.status(500).json({ error: 'server_error', message: err.message });
-});
-
-// ============================================================
-// SPA fallback
-// ============================================================
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ============================================================
