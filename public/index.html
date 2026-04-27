@@ -1,0 +1,1338 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MMW Newsletter Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Barlow:wght@300;400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #28AB83;
+      --green-mid: #1e9472;
+      --green-dark: #176d54;
+      --green-light: #E5F5F0;
+      --dark: #323547;
+      --bg: #F7FAF9;
+      --white: #ffffff;
+      --border: #D9EDE7;
+      --border-soft: #E8EFEC;
+      --text: #323547;
+      --muted: #6b7280;
+      --danger: #b3261e;
+      --warn: #b46a00;
+
+      /* Per-vertical accent (highlight block colors) */
+      --v-obgyn: #6FB7B0;
+      --v-medspa: #D88A99;
+      --v-functional: #8BAA7E;
+      --v-urogyn: #9F87C2;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: 'Lato', system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 1px 1px, rgba(40,171,131,0.07) 1px, transparent 0) 0 0 / 24px 24px,
+        var(--bg);
+      min-height: 100vh;
+    }
+    h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; color: var(--dark); margin: 0; }
+    h1 { font-weight: 800; }
+    h2 { font-weight: 700; font-size: 22px; margin-bottom: 12px; }
+    h3 { font-weight: 600; font-size: 16px; }
+    h4 { font-weight: 600; font-size: 14px; color: var(--muted); }
+
+    /* --- Nav --- */
+    nav.topbar {
+      background: var(--dark);
+      color: var(--white);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+    nav.topbar .brand-and-back { display: flex; align-items: center; gap: 14px; }
+    nav.topbar .brand {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    nav.topbar .brand .accent { color: var(--green); }
+    nav.topbar .back-btn {
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.85);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    nav.topbar .back-btn:hover { background: rgba(255,255,255,0.12); }
+    nav.topbar .right { display: flex; align-items: center; gap: 12px; }
+    nav.topbar .status {
+      font-family: 'Barlow', sans-serif;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85);
+    }
+    nav.topbar .status.ok { background: rgba(40,171,131,0.18); color: #b9ecd6; }
+    nav.topbar .status.bad { background: rgba(179,38,30,0.22); color: #ffd3d0; }
+    nav.topbar .icon-btn {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.85);
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+    }
+    nav.topbar .icon-btn:hover { background: rgba(255,255,255,0.12); }
+
+    /* --- Layout --- */
+    main { max-width: 1180px; margin: 0 auto; padding: 28px 24px 80px; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .row.between { justify-content: space-between; }
+    .grid { display: grid; gap: 16px; }
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 900px) {
+      .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; }
+    }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+
+    .hero {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--green), var(--green-mid));
+    }
+    .hero h1 { font-size: 26px; margin-bottom: 4px; }
+    .hero p { color: var(--muted); margin: 0; font-size: 14px; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      position: relative;
+    }
+    .card.hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(50, 53, 71, 0.08); }
+    .card.hover:hover::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--green), var(--green-mid));
+      border-radius: 14px 14px 0 0;
+    }
+
+    /* --- Buttons / inputs --- */
+    .btn {
+      font-family: 'Barlow', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1;
+    }
+    .btn-primary { background: var(--green); color: white; }
+    .btn-primary:hover { background: var(--green-mid); transform: scale(1.02); }
+    .btn-primary:disabled { background: #bdbdbd; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: var(--green-light); color: var(--green-dark); }
+    .btn-secondary:hover { background: #d3ece2; }
+    .btn-ghost { background: transparent; color: var(--dark); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid #f5d5d2; }
+    .btn-danger:hover { background: #fdebea; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+    .input-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .input-row label { font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--dark); font-weight: 500; }
+    .input, .select, .textarea {
+      font-family: 'Lato', sans-serif;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      background: var(--white);
+      width: 100%;
+    }
+    .input:focus, .select:focus, .textarea:focus { outline: 2px solid var(--green); outline-offset: -1px; border-color: var(--green); }
+    .textarea { resize: vertical; min-height: 90px; font-family: 'Lato', sans-serif; line-height: 1.5; }
+
+    /* --- Badges --- */
+    .badge {
+      display: inline-block;
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--green-light);
+      color: var(--green-mid);
+    }
+    .badge.v-obgyn { background: #d6ebe9; color: #34736c; }
+    .badge.v-medspa { background: #f8e0e5; color: #8b3b4d; }
+    .badge.v-functional { background: #e0ebd9; color: #4d6a3e; }
+    .badge.v-urogyn { background: #e7dff2; color: #5b4881; }
+    .badge.archived { background: #efefef; color: #666; }
+
+    /* --- Login --- */
+    #login-screen {
+      max-width: 420px;
+      margin: 80px auto;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    #login-screen::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--green), var(--green-mid));
+    }
+    #login-screen h2 { font-size: 22px; margin-bottom: 6px; }
+    #login-screen .sub { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .err { color: var(--danger); font-size: 13px; margin-top: 8px; min-height: 18px; }
+    .ok-msg { color: var(--green-dark); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+    /* --- Search row --- */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filter-row .input { width: 260px; flex: 0 0 260px; }
+    .filter-row .select { width: auto; min-width: 160px; }
+    .chip {
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--dark);
+      transition: all 0.12s ease;
+    }
+    .chip:hover { border-color: var(--green); }
+    .chip.active { background: var(--green); color: white; border-color: var(--green); }
+
+    /* --- Client card --- */
+    .client-card .clinic-name { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: var(--dark); margin-bottom: 4px; }
+    .client-card .ae-line { font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+    .client-card .actions { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+
+    .status-grid { display: flex; gap: 4px; align-items: center; margin-bottom: 4px; }
+    .status-cell {
+      flex: 1;
+      padding: 6px 4px;
+      border-radius: 6px;
+      text-align: center;
+      font-family: 'Barlow', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      background: #f3f3f3;
+      color: var(--muted);
+      border: 1px solid var(--border-soft);
+    }
+    .status-cell .month-label { font-size: 9px; opacity: 0.75; display: block; margin-bottom: 1px; }
+    .status-cell.s-not_started { background: #f3f3f3; color: #888; }
+    .status-cell.s-drafted { background: #fff4dd; color: #8a6300; border-color: #f7e0a7; }
+    .status-cell.s-in_review { background: #ddeeff; color: #1e549a; border-color: #b8d6f0; }
+    .status-cell.s-sent_for_approval { background: #f0e8ff; color: #5b3c9a; border-color: #d2c3f3; }
+    .status-cell.s-approved { background: var(--green-light); color: var(--green-dark); border-color: #b9d8c9; }
+
+    /* --- Modal --- */
+    .modal-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(50,53,71,0.4);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--green), var(--green-mid));
+      border-radius: 16px 16px 0 0;
+    }
+    .modal h3 { margin-bottom: 16px; font-size: 18px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+    /* --- Profile / Generate / Output --- */
+    .section-title { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; color: var(--dark); margin-bottom: 12px; }
+    .label-small { font-family: 'Barlow', sans-serif; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+    .meta-line { font-family: 'Barlow', sans-serif; font-size: 12px; color: var(--muted); }
+
+    .rules-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .rule-item {
+      display: flex; gap: 10px; align-items: center;
+      background: var(--green-light);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    .rule-item .rule-text { flex: 1; }
+
+    .calendar-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; padding: 4px; }
+    .cal-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--white);
+      font-size: 13px;
+      transition: all 0.12s ease;
+    }
+    .cal-item:hover { border-color: var(--green); background: #fafefb; }
+    .cal-item.selected { background: var(--green-light); border-color: var(--green); }
+    .cal-item .cal-date { font-family: 'Barlow', sans-serif; font-weight: 600; min-width: 80px; color: var(--green-dark); font-size: 12px; }
+    .cal-item .cal-title { flex: 1; }
+    .cal-item input[type=checkbox] { margin: 0; accent-color: var(--green); }
+
+    /* --- Output sections --- */
+    .output-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .output-section.highlighted { border-color: var(--green); background: #fafefb; }
+    .output-section .section-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+    }
+    .output-section .section-header h3 { font-size: 14px; font-family: 'Barlow', sans-serif; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--green-dark); }
+    .output-section .section-actions { display: flex; gap: 6px; }
+    .output-section textarea {
+      width: 100%; min-height: 100px; padding: 12px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-family: 'Lato', sans-serif; font-size: 14px; line-height: 1.55;
+      background: #fafefb;
+    }
+    .output-section .feedback-box { margin-top: 10px; padding: 10px; background: var(--green-light); border-radius: 8px; }
+    .output-section .feedback-box textarea { min-height: 60px; font-size: 13px; }
+
+    /* --- Tooltip --- */
+    .tip { position: relative; display: inline-block; cursor: help; color: var(--muted); margin-left: 4px; font-size: 12px; }
+    .tip .tip-body {
+      visibility: hidden; opacity: 0;
+      position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+      background: var(--dark); color: white; padding: 8px 10px; border-radius: 6px;
+      font-size: 12px; width: 240px; z-index: 10;
+      transition: opacity 0.2s;
+      font-family: 'Lato', sans-serif; font-weight: 400;
+      pointer-events: none;
+    }
+    .tip:hover .tip-body { visibility: visible; opacity: 1; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--dark); color: white;
+      padding: 12px 18px; border-radius: 10px;
+      font-size: 14px; z-index: 200;
+      max-width: 360px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      animation: toastIn 0.18s ease-out;
+    }
+    .toast.danger { background: var(--danger); }
+    .toast.ok { background: var(--green); }
+    @keyframes toastIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+    .empty-state h3 { color: var(--dark); margin-bottom: 6px; font-size: 18px; }
+    .loading { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--green-light); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .text-muted { color: var(--muted); }
+    .text-small { font-size: 13px; }
+    .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; }
+    .divider { height: 1px; background: var(--border-soft); margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <nav class="topbar" id="topbar" hidden>
+    <div class="brand-and-back">
+      <div class="brand" onclick="route('dashboard')">MMW <span class="accent">/</span> Newsletter Generator</div>
+      <button id="back-btn" class="back-btn" hidden>← Back</button>
+    </div>
+    <div class="right">
+      <button class="icon-btn" onclick="route('aes')" title="Manage AEs">AEs</button>
+      <div id="health-status" class="status">checking…</div>
+      <button class="icon-btn" onclick="logout()" title="Sign out">⏻</button>
+    </div>
+  </nav>
+
+  <!-- Login -->
+  <div id="login-screen">
+    <h2>Sign in</h2>
+    <p class="sub">Shared MMW login.</p>
+    <div class="input-row">
+      <label for="email">Email</label>
+      <input id="email" class="input" type="email" autocomplete="username" />
+    </div>
+    <div class="input-row">
+      <label for="password">Password</label>
+      <input id="password" class="input" type="password" autocomplete="current-password" />
+    </div>
+    <button id="login-btn" class="btn btn-primary" style="width:100%; justify-content:center;">Sign in</button>
+    <div id="login-error" class="err"></div>
+  </div>
+
+  <main id="app" hidden></main>
+
+  <div id="modal-root"></div>
+  <div id="toast-root"></div>
+
+  <script>
+  // ============================================================
+  // STATE & UTILITIES
+  // ============================================================
+  const state = {
+    page: 'dashboard',
+    pageArgs: {},
+    aes: [],
+    clients: [],
+    recent_status: {},
+    selectedAE: 'all',
+    selectedVertical: 'all',
+    searchTerm: '',
+    sectionMeta: { section_names: [], section_labels: {} },
+  };
+
+  const VERTICALS = [
+    { id: 'obgyn', label: 'OB/GYN' },
+    { id: 'medspa', label: 'Med Spa' },
+    { id: 'functional', label: 'Functional Medicine' },
+    { id: 'urogyn', label: 'Urogyn' },
+  ];
+  const STATUSES = [
+    { id: 'not_started', label: 'Not started' },
+    { id: 'drafted', label: 'Drafted' },
+    { id: 'in_review', label: 'In review' },
+    { id: 'sent_for_approval', label: 'Sent for approval' },
+    { id: 'approved', label: 'Approved' },
+  ];
+
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const el = (tag, attrs = {}, ...kids) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') e.className = v;
+      else if (k === 'onclick' || k === 'onchange' || k === 'oninput' || k === 'onkeydown') e[k] = v;
+      else if (v === true) e.setAttribute(k, '');
+      else if (v !== false && v != null) e.setAttribute(k, v);
+    }
+    for (const k of kids.flat()) {
+      if (k == null || k === false) continue;
+      if (typeof k === 'string') e.appendChild(document.createTextNode(k));
+      else e.appendChild(k);
+    }
+    return e;
+  };
+  const escapeHtml = (s) => (s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const verticalLabel = (v) => (VERTICALS.find((x) => x.id === v) || {}).label || v;
+  const monthName = (m) => ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m] || '';
+  const monthShort = (m) => ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m] || '';
+  const statusLabel = (s) => (STATUSES.find((x) => x.id === s) || {}).label || s || 'Not started';
+
+  // ============================================================
+  // API
+  // ============================================================
+  async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const r = await fetch(path, opts);
+    let json = null;
+    try { json = await r.json(); } catch (e) {}
+    if (!r.ok) {
+      const msg = (json && (json.message || json.error)) || `HTTP ${r.status}`;
+      const err = new Error(msg);
+      err.body = json;
+      err.status = r.status;
+      throw err;
+    }
+    return json;
+  }
+
+  // ============================================================
+  // TOAST + MODAL
+  // ============================================================
+  function toast(message, kind = '') {
+    const root = $('#toast-root');
+    const t = el('div', { class: 'toast ' + kind }, message);
+    root.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2800);
+  }
+
+  function showModal(content) {
+    const root = $('#modal-root');
+    root.innerHTML = '';
+    const backdrop = el('div', { class: 'modal-backdrop', onclick: (e) => { if (e.target === backdrop) closeModal(); } });
+    const modal = el('div', { class: 'modal' });
+    if (typeof content === 'string') modal.innerHTML = content;
+    else modal.appendChild(content);
+    backdrop.appendChild(modal);
+    root.appendChild(backdrop);
+    return modal;
+  }
+  function closeModal() { $('#modal-root').innerHTML = ''; }
+
+  function confirm(message, opts = {}) {
+    return new Promise((resolve) => {
+      const m = showModal(el('div', {},
+        el('h3', {}, opts.title || 'Confirm'),
+        el('p', { class: 'text-muted' }, message),
+        el('div', { class: 'modal-actions' },
+          el('button', { class: 'btn btn-ghost', onclick: () => { closeModal(); resolve(false); } }, 'Cancel'),
+          el('button', { class: 'btn ' + (opts.danger ? 'btn-danger' : 'btn-primary'), onclick: () => { closeModal(); resolve(true); } }, opts.confirmLabel || 'Confirm'),
+        )
+      ));
+    });
+  }
+
+  // ============================================================
+  // ROUTING
+  // ============================================================
+  function route(page, args = {}) {
+    state.page = page;
+    state.pageArgs = args;
+    render();
+  }
+
+  function render() {
+    $('#topbar').hidden = false;
+    $('#login-screen').hidden = true;
+    $('#app').hidden = false;
+    const backBtn = $('#back-btn');
+    backBtn.hidden = state.page === 'dashboard';
+    backBtn.onclick = () => {
+      if (state.page === 'output') route('client_profile', { id: state.pageArgs.client_id });
+      else if (state.page === 'generate') route('client_profile', { id: state.pageArgs.id });
+      else route('dashboard');
+    };
+    const root = $('#app');
+    root.innerHTML = '';
+    if (state.page === 'dashboard') renderDashboard(root);
+    else if (state.page === 'aes') renderAEs(root);
+    else if (state.page === 'client_profile') renderClientProfile(root, state.pageArgs.id);
+    else if (state.page === 'generate') renderGenerate(root, state.pageArgs.id);
+    else if (state.page === 'output') renderOutput(root, state.pageArgs.id);
+  }
+
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+  async function renderDashboard(root) {
+    root.appendChild(el('div', { class: 'hero' },
+      el('h1', {}, 'Clients'),
+      el('p', {}, 'Generate, edit, and approve monthly newsletters across all four verticals.'),
+    ));
+
+    // Filter row + actions
+    const aeOptions = [el('option', { value: 'all' }, 'All AEs')];
+    for (const a of state.aes) aeOptions.push(el('option', { value: a.id }, a.name));
+
+    const verticalChips = el('div', { class: 'row' },
+      ...['all', ...VERTICALS.map((v) => v.id)].map((v) =>
+        el('button', {
+          class: 'chip' + (state.selectedVertical === v ? ' active' : ''),
+          onclick: () => { state.selectedVertical = v; render(); }
+        }, v === 'all' ? 'All verticals' : verticalLabel(v))
+      )
+    );
+
+    const filterRow = el('div', { class: 'filter-row' },
+      el('input', {
+        class: 'input',
+        placeholder: 'Search by clinic name…',
+        value: state.searchTerm,
+        oninput: (e) => { state.searchTerm = e.target.value; renderClientGrid(grid); },
+      }),
+      el('select', {
+        class: 'select',
+        onchange: (e) => { state.selectedAE = e.target.value; render(); }
+      }, ...aeOptions.map((o) => { if (o.value === state.selectedAE) o.setAttribute('selected', ''); return o; })),
+      verticalChips,
+      el('div', { style: 'flex: 1' }),
+      el('button', { class: 'btn btn-primary', onclick: openNewClientModal }, '+ New Client')
+    );
+    root.appendChild(filterRow);
+
+    const grid = el('div', { class: 'grid cols-3', id: 'client-grid' });
+    root.appendChild(grid);
+
+    try {
+      const [clientsResp, aesResp] = await Promise.all([
+        api('GET', '/api/clients'),
+        api('GET', '/api/aes'),
+      ]);
+      state.clients = clientsResp.clients || [];
+      state.recent_status = clientsResp.recent_status || {};
+      state.aes = aesResp.aes || [];
+      // Re-render to update AE dropdown options
+      render();
+    } catch (e) {
+      grid.appendChild(el('div', { class: 'empty-state' }, el('h3', {}, 'Could not load clients'), el('p', {}, e.message)));
+    }
+  }
+
+  function renderClientGrid(grid) {
+    grid.innerHTML = '';
+    let clients = state.clients.slice();
+    if (state.selectedAE !== 'all') clients = clients.filter((c) => c.ae_id === state.selectedAE);
+    if (state.selectedVertical !== 'all') clients = clients.filter((c) => c.vertical === state.selectedVertical);
+    if (state.searchTerm) {
+      const t = state.searchTerm.toLowerCase();
+      clients = clients.filter((c) => (c.clinic_name || '').toLowerCase().includes(t));
+    }
+    if (clients.length === 0) {
+      grid.appendChild(el('div', { class: 'empty-state', style: 'grid-column: 1 / -1' },
+        el('h3', {}, 'No clients yet'),
+        el('p', {}, 'Click "+ New Client" to add the first one.')
+      ));
+      return;
+    }
+    for (const c of clients) grid.appendChild(buildClientCard(c));
+  }
+
+  function buildClientCard(c) {
+    const card = el('div', { class: 'card hover client-card' });
+    card.appendChild(el('div', { class: 'clinic-name' }, c.clinic_name));
+    card.appendChild(el('div', { class: 'row', style: 'gap:6px;margin-bottom:8px;' },
+      el('span', { class: 'badge v-' + c.vertical }, verticalLabel(c.vertical)),
+      c.archived ? el('span', { class: 'badge archived' }, 'Archived') : null,
+    ));
+    card.appendChild(el('div', { class: 'ae-line' }, c.ae ? `AE: ${c.ae.name}` : 'No AE assigned'));
+
+    // Rolling 3-month status grid (oldest → newest)
+    const now = new Date();
+    const months = [];
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+    }
+    const grid = el('div', { class: 'status-grid' });
+    const recent = state.recent_status[c.id] || {};
+    for (const m of months) {
+      const key = `${m.year}-${String(m.month).padStart(2, '0')}`;
+      const status = recent[key] || 'not_started';
+      grid.appendChild(el('div', { class: 'status-cell s-' + status, title: `${monthName(m.month)} ${m.year}: ${statusLabel(status)}` },
+        el('span', { class: 'month-label' }, monthShort(m.month)),
+        statusLabel(status).split(' ')[0]
+      ));
+    }
+    card.appendChild(grid);
+
+    card.appendChild(el('div', { class: 'actions' },
+      el('button', { class: 'btn btn-primary btn-sm', onclick: () => route('generate', { id: c.id }) }, 'Generate'),
+      el('button', { class: 'btn btn-ghost btn-sm', onclick: () => route('client_profile', { id: c.id }) }, 'Edit'),
+      el('button', { class: 'btn btn-danger btn-sm', onclick: () => archiveClient(c) }, c.archived ? 'Unarchive' : 'Archive'),
+    ));
+    return card;
+  }
+
+  async function archiveClient(c) {
+    const newState = !c.archived;
+    const ok = await confirm(
+      newState
+        ? `Archive ${c.clinic_name}? They'll be hidden from the dashboard. You can unarchive any time.`
+        : `Restore ${c.clinic_name} to the active list?`,
+      { title: newState ? 'Archive client' : 'Unarchive client', danger: newState, confirmLabel: newState ? 'Archive' : 'Restore' }
+    );
+    if (!ok) return;
+    try {
+      await api('POST', `/api/clients/${c.id}/archive`, { archived: newState });
+      toast(newState ? 'Archived.' : 'Restored.', 'ok');
+      route('dashboard');
+    } catch (e) { toast(e.message, 'danger'); }
+  }
+
+  function openNewClientModal() {
+    let clinic = '', vertical = 'medspa', ae_id = '', template_type = 'standard';
+    const aeOpts = [el('option', { value: '' }, 'Unassigned'), ...state.aes.filter((a) => a.active).map((a) => el('option', { value: a.id }, a.name))];
+    const m = showModal(el('div', {},
+      el('h3', {}, 'New Client'),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Clinic name'),
+        el('input', { class: 'input', oninput: (e) => clinic = e.target.value })
+      ),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Vertical'),
+        el('select', { class: 'select', onchange: (e) => vertical = e.target.value },
+          ...VERTICALS.map((v) => el('option', { value: v.id }, v.label)))
+      ),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Account Executive'),
+        el('select', { class: 'select', onchange: (e) => ae_id = e.target.value }, ...aeOpts)
+      ),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Template type ', tip('Standard uses our four-vertical newsletter skeleton. Custom lets you upload the client\'s own HTML.')),
+        el('select', { class: 'select', onchange: (e) => template_type = e.target.value },
+          el('option', { value: 'standard' }, 'Standard'),
+          el('option', { value: 'custom' }, 'Custom HTML'),
+        )
+      ),
+      el('div', { class: 'modal-actions' },
+        el('button', { class: 'btn btn-ghost', onclick: closeModal }, 'Cancel'),
+        el('button', { class: 'btn btn-primary', onclick: async () => {
+          if (!clinic.trim()) { toast('Clinic name required', 'danger'); return; }
+          try {
+            const r = await api('POST', '/api/clients', { clinic_name: clinic, vertical, ae_id: ae_id || null, template_type });
+            closeModal();
+            toast('Client created.', 'ok');
+            route('client_profile', { id: r.client.id });
+          } catch (e) { toast(e.message, 'danger'); }
+        } }, 'Create')
+      )
+    ));
+  }
+
+  // ============================================================
+  // AE MANAGEMENT
+  // ============================================================
+  async function renderAEs(root) {
+    root.appendChild(el('div', { class: 'hero' },
+      el('h1', {}, 'Account Executives'),
+      el('p', {}, 'Add, rename, or deactivate AEs. Deactivated AEs are kept on file so historical client assignments remain intact.')
+    ));
+
+    const aesResp = await api('GET', '/api/aes');
+    state.aes = aesResp.aes || [];
+
+    const card = el('div', { class: 'card' });
+    card.appendChild(el('h2', {}, 'Active AEs'));
+    const list = el('div', { class: 'stack' });
+    for (const a of state.aes.filter((x) => x.active)) {
+      list.appendChild(buildAEItem(a));
+    }
+    if (state.aes.filter((x) => x.active).length === 0) list.appendChild(el('p', { class: 'text-muted text-small' }, 'None yet.'));
+    card.appendChild(list);
+    card.appendChild(el('div', { class: 'divider' }));
+
+    let newName = '';
+    card.appendChild(el('div', { class: 'row' },
+      el('input', { class: 'input', placeholder: 'Add an AE by name…', oninput: (e) => newName = e.target.value, style: 'flex:1' }),
+      el('button', { class: 'btn btn-primary', onclick: async () => {
+        if (!newName.trim()) return;
+        try { await api('POST', '/api/aes', { name: newName }); render(); }
+        catch (e) { toast(e.message, 'danger'); }
+      } }, 'Add')
+    ));
+
+    root.appendChild(card);
+
+    const inactive = state.aes.filter((x) => !x.active);
+    if (inactive.length > 0) {
+      const c2 = el('div', { class: 'card', style: 'margin-top:16px' });
+      c2.appendChild(el('h2', {}, 'Inactive AEs'));
+      const list2 = el('div', { class: 'stack' });
+      for (const a of inactive) list2.appendChild(buildAEItem(a));
+      c2.appendChild(list2);
+      root.appendChild(c2);
+    }
+  }
+
+  function buildAEItem(a) {
+    const item = el('div', { class: 'row between', style: 'padding: 8px 0; border-bottom: 1px solid var(--border-soft)' });
+    item.appendChild(el('div', {}, a.name, a.active ? '' : el('span', { class: 'badge archived', style: 'margin-left:8px' }, 'Inactive')));
+    const actions = el('div', { class: 'row' });
+    actions.appendChild(el('button', { class: 'btn btn-ghost btn-sm', onclick: () => renameAE(a) }, 'Rename'));
+    if (a.active) {
+      actions.appendChild(el('button', { class: 'btn btn-danger btn-sm', onclick: () => deactivateAE(a) }, 'Deactivate'));
+    } else {
+      actions.appendChild(el('button', { class: 'btn btn-secondary btn-sm', onclick: async () => {
+        try { await api('PATCH', `/api/aes/${a.id}`, { active: true }); render(); } catch (e) { toast(e.message, 'danger'); }
+      } }, 'Reactivate'));
+    }
+    item.appendChild(actions);
+    return item;
+  }
+
+  async function renameAE(a) {
+    let newName = a.name;
+    showModal(el('div', {},
+      el('h3', {}, 'Rename AE'),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Name'),
+        el('input', { class: 'input', value: a.name, oninput: (e) => newName = e.target.value })
+      ),
+      el('div', { class: 'modal-actions' },
+        el('button', { class: 'btn btn-ghost', onclick: closeModal }, 'Cancel'),
+        el('button', { class: 'btn btn-primary', onclick: async () => {
+          try { await api('PATCH', `/api/aes/${a.id}`, { name: newName }); closeModal(); render(); }
+          catch (e) { toast(e.message, 'danger'); }
+        } }, 'Save')
+      )
+    ));
+  }
+
+  async function deactivateAE(a) {
+    // Check assigned clients first
+    const clientsResp = await api('GET', '/api/clients');
+    const assigned = (clientsResp.clients || []).filter((c) => c.ae_id === a.id && !c.archived);
+    if (assigned.length === 0) {
+      const ok = await confirm(`Deactivate ${a.name}? They'll move to the inactive list.`, { danger: true, confirmLabel: 'Deactivate' });
+      if (!ok) return;
+      try { await api('DELETE', `/api/aes/${a.id}`); render(); } catch (e) { toast(e.message, 'danger'); }
+      return;
+    }
+    // Reassignment flow
+    const otherAEs = state.aes.filter((x) => x.active && x.id !== a.id);
+    if (otherAEs.length === 0) {
+      toast('Cannot deactivate — no other active AE to reassign their clients to.', 'danger');
+      return;
+    }
+    let reassign_to = otherAEs[0].id;
+    showModal(el('div', {},
+      el('h3', {}, `Deactivate ${a.name}`),
+      el('p', {}, `${a.name} has ${assigned.length} active client${assigned.length === 1 ? '' : 's'}. Reassign them first.`),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Reassign to'),
+        el('select', { class: 'select', onchange: (e) => reassign_to = e.target.value },
+          ...otherAEs.map((x) => el('option', { value: x.id }, x.name)))
+      ),
+      el('div', { class: 'modal-actions' },
+        el('button', { class: 'btn btn-ghost', onclick: closeModal }, 'Cancel'),
+        el('button', { class: 'btn btn-danger', onclick: async () => {
+          try {
+            await api('DELETE', `/api/aes/${a.id}?reassign_to=${reassign_to}`);
+            closeModal(); render(); toast('Deactivated and clients reassigned.', 'ok');
+          } catch (e) { toast(e.message, 'danger'); }
+        } }, 'Deactivate')
+      )
+    ));
+  }
+
+  // ============================================================
+  // CLIENT PROFILE
+  // ============================================================
+  async function renderClientProfile(root, id) {
+    root.appendChild(el('div', { class: 'hero', id: 'profile-hero' }, el('p', {}, 'Loading…')));
+    let resp;
+    try { resp = await api('GET', `/api/clients/${id}`); }
+    catch (e) { root.innerHTML = ''; root.appendChild(el('div', { class: 'empty-state' }, el('h3', {}, 'Not found'), el('p', {}, e.message))); return; }
+    const aesResp = await api('GET', '/api/aes');
+    state.aes = aesResp.aes || [];
+
+    const c = resp.client;
+    const assets = resp.assets || {};
+    const rules = resp.rules || [];
+
+    root.innerHTML = '';
+    const hero = el('div', { class: 'hero' });
+    hero.appendChild(el('h1', {}, c.clinic_name));
+    hero.appendChild(el('div', { class: 'row', style: 'gap:8px;margin-top:8px;' },
+      el('span', { class: 'badge v-' + c.vertical }, verticalLabel(c.vertical)),
+      el('span', { class: 'meta-line' }, c.ae ? `AE: ${c.ae.name}` : 'No AE assigned'),
+      el('span', { class: 'meta-line' }, `Template: ${c.template_type === 'standard' ? 'Standard' : 'Custom HTML'}`),
+    ));
+    hero.appendChild(el('div', { class: 'row', style: 'margin-top:14px;gap:8px' },
+      el('button', { class: 'btn btn-primary', onclick: () => route('generate', { id: c.id }) }, 'Generate Newsletter'),
+      el('button', { class: 'btn btn-ghost', onclick: () => editClientMetaModal(c) }, 'Edit details'),
+      el('button', { class: 'btn btn-danger', onclick: () => archiveClient(c) }, c.archived ? 'Unarchive' : 'Archive'),
+    ));
+    root.appendChild(hero);
+
+    // Master record
+    root.appendChild(buildAssetCard(c.id, 'master_record', 'Master Record', 'Required. The core voice + service info that every newsletter pulls from.', assets.master_record, true));
+    // Brand voice
+    root.appendChild(buildAssetCard(c.id, 'brand_voice', 'Brand Voice Document', 'Optional. Free-form output from the website crawler tool. The format does not need to be strict.', assets.brand_voice, false));
+    // Custom template — only if custom
+    if (c.template_type === 'custom') {
+      root.appendChild(buildAssetCard(c.id, 'html_template', 'Custom HTML Template', 'The client\'s custom newsletter HTML. The generator will reference its structure.', assets.html_template, true));
+    }
+    // Rules
+    root.appendChild(buildRulesCard(c.id, rules));
+  }
+
+  function buildAssetCard(clientId, type, label, sub, content, required) {
+    const card = el('div', { class: 'card', style: 'margin-bottom:16px' });
+    let editing = false, draft = content || '';
+    const updatedNote = el('div', { class: 'meta-line', style: 'margin-bottom:10px' }, content ? 'On file.' : (required ? '⚠ Not on file (required for generation)' : 'Not on file (optional).'));
+
+    function rerender() {
+      card.innerHTML = '';
+      card.appendChild(el('div', { class: 'row between' },
+        el('div', {},
+          el('h3', { class: 'section-title' }, label, required ? el('span', { style: 'color:var(--danger);margin-left:4px' }, '*') : null),
+          updatedNote,
+        ),
+        el('div', { class: 'row' },
+          editing
+            ? el('button', { class: 'btn btn-primary btn-sm', onclick: async () => {
+                try { await api('PUT', `/api/clients/${clientId}/assets/${type}`, { content: draft }); editing = false; toast('Saved.', 'ok'); route('client_profile', { id: clientId }); }
+                catch (e) { toast(e.message, 'danger'); }
+              } }, 'Save')
+            : el('button', { class: 'btn btn-ghost btn-sm', onclick: () => { editing = true; rerender(); } }, content ? 'Update' : 'Add'),
+          editing ? el('button', { class: 'btn btn-ghost btn-sm', onclick: () => { editing = false; draft = content || ''; rerender(); } }, 'Cancel') : null,
+        )
+      ));
+      card.appendChild(el('p', { class: 'text-muted text-small', style: 'margin-bottom:12px' }, sub));
+      if (editing) {
+        card.appendChild(el('textarea', {
+          class: 'textarea',
+          style: 'min-height: 240px; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px;',
+          oninput: (e) => draft = e.target.value
+        }, draft));
+      } else if (content) {
+        card.appendChild(el('div', { style: 'background:#fafefb; border:1px solid var(--border); border-radius:10px; padding:14px; max-height:240px; overflow:auto; white-space:pre-wrap; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size:13px; color:var(--dark);' }, content));
+      }
+    }
+    rerender();
+    return card;
+  }
+
+  function buildRulesCard(clientId, rules) {
+    const card = el('div', { class: 'card', style: 'margin-bottom:16px' });
+    card.appendChild(el('h3', { class: 'section-title' }, 'Custom Brand Rules'));
+    card.appendChild(el('p', { class: 'text-muted text-small', style: 'margin-bottom:12px' }, 'Per-client rules layered on top of the master record. e.g. "Always say patients, not clients" or "Never mention specific GLP-1 brand names".'));
+
+    const list = el('div', { class: 'rules-list' });
+    if (rules.length === 0) list.appendChild(el('p', { class: 'text-muted text-small' }, 'No rules yet.'));
+    for (const r of rules) {
+      list.appendChild(el('div', { class: 'rule-item' },
+        el('div', { class: 'rule-text' }, r.rule_text),
+        el('button', { class: 'btn btn-danger btn-sm', onclick: async () => {
+          try { await api('DELETE', `/api/clients/${clientId}/rules/${r.id}`); route('client_profile', { id: clientId }); }
+          catch (e) { toast(e.message, 'danger'); }
+        } }, 'Remove')
+      ));
+    }
+    card.appendChild(list);
+
+    let newRule = '';
+    card.appendChild(el('div', { class: 'row' },
+      el('input', { class: 'input', placeholder: 'Add a rule…', oninput: (e) => newRule = e.target.value, style: 'flex:1' }),
+      el('button', { class: 'btn btn-primary', onclick: async () => {
+        if (!newRule.trim()) return;
+        try { await api('POST', `/api/clients/${clientId}/rules`, { rule_text: newRule }); route('client_profile', { id: clientId }); }
+        catch (e) { toast(e.message, 'danger'); }
+      } }, 'Add Rule')
+    ));
+    return card;
+  }
+
+  function editClientMetaModal(c) {
+    let clinic = c.clinic_name, vertical = c.vertical, ae_id = c.ae_id || '', template_type = c.template_type;
+    const aeOpts = [el('option', { value: '' }, 'Unassigned'), ...state.aes.filter((a) => a.active || a.id === c.ae_id).map((a) => el('option', { value: a.id }, a.name))];
+    showModal(el('div', {},
+      el('h3', {}, 'Edit Client Details'),
+      el('div', { class: 'input-row' }, el('label', {}, 'Clinic name'), el('input', { class: 'input', value: c.clinic_name, oninput: (e) => clinic = e.target.value })),
+      el('div', { class: 'input-row' }, el('label', {}, 'Vertical'), el('select', { class: 'select', onchange: (e) => vertical = e.target.value }, ...VERTICALS.map((v) => { const o = el('option', { value: v.id }, v.label); if (v.id === c.vertical) o.setAttribute('selected', ''); return o; }))),
+      el('div', { class: 'input-row' }, el('label', {}, 'Account Executive'), el('select', { class: 'select', onchange: (e) => ae_id = e.target.value }, ...aeOpts.map((o) => { if (o.value === (c.ae_id || '')) o.setAttribute('selected', ''); return o; }))),
+      el('div', { class: 'input-row' },
+        el('label', {}, 'Template type'),
+        el('select', { class: 'select', onchange: (e) => template_type = e.target.value },
+          (() => { const o = el('option', { value: 'standard' }, 'Standard'); if (c.template_type === 'standard') o.setAttribute('selected', ''); return o; })(),
+          (() => { const o = el('option', { value: 'custom' }, 'Custom HTML'); if (c.template_type === 'custom') o.setAttribute('selected', ''); return o; })(),
+        )
+      ),
+      el('div', { class: 'modal-actions' },
+        el('button', { class: 'btn btn-ghost', onclick: closeModal }, 'Cancel'),
+        el('button', { class: 'btn btn-primary', onclick: async () => {
+          try {
+            await api('PATCH', `/api/clients/${c.id}`, { clinic_name: clinic, vertical, ae_id: ae_id || null, template_type });
+            closeModal(); route('client_profile', { id: c.id }); toast('Saved.', 'ok');
+          } catch (e) { toast(e.message, 'danger'); }
+        } }, 'Save')
+      )
+    ));
+  }
+
+  // ============================================================
+  // GENERATE PAGE
+  // ============================================================
+  async function renderGenerate(root, clientId) {
+    root.appendChild(el('div', { class: 'hero', id: 'gen-hero' }, el('p', {}, 'Loading…')));
+    let resp;
+    try { resp = await api('GET', `/api/clients/${clientId}`); }
+    catch (e) { root.innerHTML = ''; root.appendChild(el('div', { class: 'empty-state' }, el('h3', {}, 'Not found'), el('p', {}, e.message))); return; }
+
+    const c = resp.client;
+    const hasMaster = !!(resp.assets && resp.assets.master_record);
+    const customNeedsTemplate = c.template_type === 'custom' && !(resp.assets && resp.assets.html_template);
+
+    const now = new Date();
+    let month = now.getMonth() + 1, year = now.getFullYear();
+    let topic = '', features = '', links = [], selectedEvents = new Set();
+
+    root.innerHTML = '';
+    root.appendChild(el('div', { class: 'hero' },
+      el('h1', {}, `Generate: ${c.clinic_name}`),
+      el('p', {}, `${verticalLabel(c.vertical)} · ${c.ae ? `AE: ${c.ae.name}` : 'No AE assigned'}`),
+    ));
+
+    if (!hasMaster) {
+      root.appendChild(el('div', { class: 'card', style: 'border-color: var(--danger)' },
+        el('p', {}, '⚠ This client has no master record. Add one before generating.'),
+        el('button', { class: 'btn btn-primary', style: 'margin-top:8px', onclick: () => route('client_profile', { id: c.id }) }, 'Open client profile')
+      ));
+      return;
+    }
+    if (customNeedsTemplate) {
+      root.appendChild(el('div', { class: 'card', style: 'border-color: var(--danger)' },
+        el('p', {}, '⚠ Client is set to custom template but no HTML is on file.'),
+        el('button', { class: 'btn btn-primary', style: 'margin-top:8px', onclick: () => route('client_profile', { id: c.id }) }, 'Add template HTML')
+      ));
+      return;
+    }
+
+    const card = el('div', { class: 'card', style: 'margin-bottom:16px' });
+
+    // Month / year
+    const monthOpts = []; for (let m = 1; m <= 12; m++) { const o = el('option', { value: m }, monthName(m)); if (m === month) o.setAttribute('selected', ''); monthOpts.push(o); }
+    const yearOpts = []; const yNow = now.getFullYear();
+    for (let y = yNow - 1; y <= yNow + 1; y++) { const o = el('option', { value: y }, y); if (y === year) o.setAttribute('selected', ''); yearOpts.push(o); }
+
+    card.appendChild(el('div', { class: 'row' },
+      el('div', { class: 'input-row', style: 'flex:1' },
+        el('label', {}, 'Month'),
+        el('select', { class: 'select', onchange: async (e) => { month = parseInt(e.target.value, 10); await loadCalendar(); } }, ...monthOpts),
+      ),
+      el('div', { class: 'input-row', style: 'flex:1' },
+        el('label', {}, 'Year'),
+        el('select', { class: 'select', onchange: (e) => year = parseInt(e.target.value, 10) }, ...yearOpts),
+      ),
+    ));
+
+    // Calendar suggestions
+    card.appendChild(el('div', { class: 'label-small' }, 'Awareness Days for the Month',
+      tip(`Filtered to ${verticalLabel(c.vertical)}. Check any to weave into the newsletter.`)
+    ));
+    const calBox = el('div', { class: 'calendar-list', id: 'cal-box' });
+    card.appendChild(calBox);
+
+    async function loadCalendar() {
+      calBox.innerHTML = '<div class="text-muted text-small">Loading…</div>';
+      try {
+        const ev = await api('GET', `/api/calendar?month=${month}&vertical=${c.vertical}`);
+        calBox.innerHTML = '';
+        if (!ev.events || ev.events.length === 0) {
+          calBox.appendChild(el('div', { class: 'text-muted text-small' }, 'Nothing flagged for this month.'));
+          return;
+        }
+        for (const e of ev.events) {
+          const id = e.id;
+          const item = el('div', { class: 'cal-item' + (selectedEvents.has(id) ? ' selected' : '') });
+          const cb = el('input', { type: 'checkbox', onchange: () => {
+            if (selectedEvents.has(id)) selectedEvents.delete(id); else selectedEvents.add(id);
+            item.classList.toggle('selected');
+          }});
+          if (selectedEvents.has(id)) cb.checked = true;
+          item.onclick = (ev) => { if (ev.target.tagName !== 'INPUT') { cb.click(); } };
+          item.appendChild(cb);
+          item.appendChild(el('div', { class: 'cal-date' }, e.day ? `${monthShort(e.month)} ${e.day}` : 'Month-long'));
+          item.appendChild(el('div', { class: 'cal-title' },
+            el('div', { style: 'font-weight:500' }, e.title),
+            e.description ? el('div', { class: 'meta-line' }, e.description) : null,
+          ));
+          calBox.appendChild(item);
+        }
+      } catch (e) {
+        calBox.innerHTML = '';
+        calBox.appendChild(el('div', { class: 'text-muted text-small' }, e.message));
+      }
+    }
+    await loadCalendar();
+
+    // Topic
+    card.appendChild(el('div', { class: 'input-row', style: 'margin-top:12px' },
+      el('label', {}, 'Topic / theme', tip('A single short line. The generator builds the newsletter around this.')),
+      el('input', { class: 'input', placeholder: 'e.g. Pelvic floor health after childbirth', oninput: (e) => topic = e.target.value }),
+    ));
+
+    // Features
+    card.appendChild(el('div', { class: 'input-row' },
+      el('label', {}, 'What to feature this month', tip('Free-form. Treatments, events, specials, partnerships, anything you want highlighted.')),
+      el('textarea', { class: 'textarea', placeholder: 'e.g. Featuring our new TempSure Envi treatment, holiday gift cards, partnership with X…', oninput: (e) => features = e.target.value })
+    ));
+
+    // Links
+    card.appendChild(el('div', { class: 'label-small' }, 'Links to weave in',
+      tip('Each link gets a label and URL. The generator uses the label as anchor text where it fits naturally.')));
+    const linksBox = el('div', { class: 'stack', style: 'margin-bottom:10px' });
+    function rerenderLinks() {
+      linksBox.innerHTML = '';
+      links.forEach((l, i) => {
+        linksBox.appendChild(el('div', { class: 'row', style: 'gap:8px' },
+          el('input', { class: 'input', placeholder: 'Label (anchor text)', value: l.label, oninput: (e) => links[i].label = e.target.value, style: 'flex:1' }),
+          el('input', { class: 'input', placeholder: 'https://…', value: l.url, oninput: (e) => links[i].url = e.target.value, style: 'flex:2' }),
+          el('button', { class: 'btn btn-danger btn-sm', onclick: () => { links.splice(i, 1); rerenderLinks(); } }, '✕'),
+        ));
+      });
+      linksBox.appendChild(el('button', { class: 'btn btn-ghost btn-sm', onclick: () => { links.push({ label: '', url: '' }); rerenderLinks(); } }, '+ Add link'));
+    }
+    rerenderLinks();
+    card.appendChild(linksBox);
+
+    // Generate button
+    const genBtn = el('button', { class: 'btn btn-primary', style: 'margin-top:8px;align-self:flex-start' }, 'Generate Newsletter');
+    genBtn.onclick = async () => {
+      genBtn.disabled = true;
+      genBtn.innerHTML = '<span class="loading"></span> Generating…';
+      try {
+        const cleaned = links.filter((l) => l.url && l.url.trim());
+        const r = await api('POST', `/api/clients/${c.id}/newsletters/generate`, {
+          month, year, topic, features,
+          links: cleaned,
+          selected_calendar_event_ids: Array.from(selectedEvents),
+        });
+        toast('Generated.', 'ok');
+        route('output', { id: r.newsletter.id, client_id: c.id });
+      } catch (e) {
+        toast(e.message, 'danger');
+        genBtn.disabled = false;
+        genBtn.textContent = 'Generate Newsletter';
+      }
+    };
+    card.appendChild(genBtn);
+    root.appendChild(card);
+  }
+
+  // ============================================================
+  // OUTPUT PAGE
+  // ============================================================
+  async function renderOutput(root, newsletterId) {
+    root.appendChild(el('div', { class: 'hero' }, el('p', {}, 'Loading…')));
+    let resp;
+    try { resp = await api('GET', `/api/newsletters/${newsletterId}`); }
+    catch (e) { root.innerHTML = ''; root.appendChild(el('div', { class: 'empty-state' }, el('h3', {}, 'Not found'), el('p', {}, e.message))); return; }
+
+    const nl = resp.newsletter;
+    let sections = resp.sections || {};
+    const c = nl.client;
+    state.pageArgs.client_id = c.id;
+
+    function rerender() {
+      root.innerHTML = '';
+      root.appendChild(el('div', { class: 'hero' },
+        el('h1', {}, `${c.clinic_name} — ${monthName(nl.month)} ${nl.year}`),
+        el('div', { class: 'row', style: 'gap:8px;margin-top:8px;align-items:center' },
+          el('span', { class: 'badge v-' + c.vertical }, verticalLabel(c.vertical)),
+          el('span', { class: 'meta-line' }, `Status: `),
+          el('select', { class: 'select', style: 'width:auto', onchange: async (e) => {
+            try { await api('PATCH', `/api/newsletters/${nl.id}/status`, { status: e.target.value }); nl.status = e.target.value; toast('Status updated.', 'ok'); }
+            catch (err) { toast(err.message, 'danger'); }
+          } }, ...STATUSES.map((s) => { const o = el('option', { value: s.id }, s.label); if (s.id === nl.status) o.setAttribute('selected', ''); return o; })),
+        ),
+        el('div', { class: 'row', style: 'margin-top:14px;gap:8px;flex-wrap:wrap' },
+          el('button', { class: 'btn btn-secondary', onclick: copyAll }, 'Copy All Sections'),
+          el('button', { class: 'btn btn-ghost', onclick: () => fullRegen() }, 'Regenerate Full Newsletter'),
+          el('button', { class: 'btn btn-primary', onclick: approve }, 'Approve & Lock'),
+        ),
+      ));
+
+      const meta = state.sectionMeta;
+      for (const name of meta.section_names) {
+        root.appendChild(buildOutputSectionCard(name, sections[name] || ''));
+      }
+    }
+
+    function buildOutputSectionCard(name, content) {
+      const card = el('div', { class: 'output-section' });
+      let val = content, feedbackOpen = false, feedback = '';
+
+      function rerenderCard() {
+        card.innerHTML = '';
+        card.appendChild(el('div', { class: 'section-header' },
+          el('h3', {}, state.sectionMeta.section_labels[name] || name),
+          el('div', { class: 'section-actions' },
+            el('button', { class: 'btn btn-ghost btn-sm', onclick: () => { feedbackOpen = !feedbackOpen; rerenderCard(); } }, '↻ Regenerate'),
+            el('button', { class: 'btn btn-secondary btn-sm', onclick: () => copyText(val) }, 'Copy'),
+          )
+        ));
+        card.appendChild(el('textarea', { class: 'textarea', oninput: (e) => { val = e.target.value; sections[name] = val; } }, val));
+        if (feedbackOpen) {
+          const fb = el('div', { class: 'feedback-box' });
+          fb.appendChild(el('label', { class: 'label-small' }, 'What should change in this section?'));
+          fb.appendChild(el('textarea', { class: 'textarea', placeholder: 'e.g. Make it warmer / shorter / mention X…', oninput: (e) => feedback = e.target.value }));
+          fb.appendChild(el('div', { class: 'row', style: 'margin-top:8px' },
+            el('button', { class: 'btn btn-primary btn-sm', onclick: async () => {
+              const btn = card.querySelector('.btn-primary');
+              btn.disabled = true; btn.innerHTML = '<span class="loading"></span> …';
+              try {
+                const r = await api('POST', `/api/newsletters/${nl.id}/regenerate-section`, { section_name: name, feedback });
+                sections = r.sections || sections;
+                feedbackOpen = false;
+                feedback = '';
+                toast('Section regenerated.', 'ok');
+                rerender();
+              } catch (e) {
+                toast(e.message, 'danger');
+                btn.disabled = false; btn.textContent = 'Regenerate';
+              }
+            } }, 'Regenerate'),
+            el('button', { class: 'btn btn-ghost btn-sm', onclick: () => { feedbackOpen = false; rerenderCard(); } }, 'Cancel'),
+          ));
+          card.appendChild(fb);
+        }
+      }
+      rerenderCard();
+      return card;
+    }
+
+    function copyText(t) {
+      navigator.clipboard.writeText(t || '').then(() => toast('Copied.', 'ok')).catch(() => toast('Copy failed', 'danger'));
+    }
+
+    function copyAll() {
+      const meta = state.sectionMeta;
+      const blocks = meta.section_names
+        .map((n) => `=== ${meta.section_labels[n] || n} ===\n\n${sections[n] || ''}`)
+        .join('\n\n\n');
+      copyText(blocks);
+    }
+
+    async function approve() {
+      const ok = await confirm('Approve and lock this newsletter? It will appear as approved on the dashboard.', { confirmLabel: 'Approve' });
+      if (!ok) return;
+      try {
+        await api('POST', `/api/newsletters/${nl.id}/approve`, {});
+        toast('Approved.', 'ok');
+        route('client_profile', { id: c.id });
+      } catch (e) { toast(e.message, 'danger'); }
+    }
+
+    async function fullRegen() {
+      let feedback = '';
+      showModal(el('div', {},
+        el('h3', {}, 'Regenerate full newsletter'),
+        el('p', { class: 'text-muted text-small' }, 'Feedback is applied to a fresh generation. Inputs from the original generate step are preserved.'),
+        el('div', { class: 'input-row' },
+          el('label', {}, 'Feedback'),
+          el('textarea', { class: 'textarea', placeholder: 'e.g. More educational, less promotional. Avoid X. Lean into Y.', oninput: (e) => feedback = e.target.value })
+        ),
+        el('div', { class: 'modal-actions' },
+          el('button', { class: 'btn btn-ghost', onclick: closeModal }, 'Cancel'),
+          el('button', { class: 'btn btn-primary', onclick: async () => {
+            const btn = $('#modal-root .btn-primary');
+            btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Regenerating…';
+            try {
+              const r = await api('POST', `/api/newsletters/${nl.id}/regenerate-full`, { feedback });
+              sections = r.sections || sections;
+              closeModal();
+              toast('Regenerated.', 'ok');
+              rerender();
+            } catch (e) { toast(e.message, 'danger'); btn.disabled = false; btn.textContent = 'Regenerate'; }
+          } }, 'Regenerate')
+        )
+      ));
+    }
+
+    rerender();
+  }
+
+  function tip(text) {
+    return el('span', { class: 'tip' }, '?', el('span', { class: 'tip-body' }, text));
+  }
+
+  // ============================================================
+  // BOOT
+  // ============================================================
+  async function checkHealth() {
+    const elS = $('#health-status');
+    try {
+      const r = await fetch('/api/health');
+      const j = await r.json();
+      const allGood = j.env && j.env.supabase && j.env.anthropic && j.env.login_configured;
+      elS.textContent = allGood ? 'all systems' : 'partial config';
+      elS.className = 'status ' + (allGood ? 'ok' : 'bad');
+      elS.title = JSON.stringify(j.env || {}, null, 2);
+    } catch (e) { elS.textContent = 'offline'; elS.className = 'status bad'; }
+  }
+
+  async function loadSectionMeta() {
+    try { state.sectionMeta = await api('GET', '/api/sections/meta'); } catch (e) {}
+  }
+
+  function showLogin() {
+    $('#topbar').hidden = true;
+    $('#login-screen').hidden = false;
+    $('#app').hidden = true;
+  }
+
+  async function init() {
+    await loadSectionMeta();
+    checkHealth();
+    if (sessionStorage.getItem('mmw_nl_authed') === '1') {
+      route('dashboard');
+    } else {
+      showLogin();
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('mmw_nl_authed');
+    location.reload();
+  }
+
+  $('#login-btn').addEventListener('click', async () => {
+    const errEl = $('#login-error');
+    errEl.textContent = '';
+    const email = $('#email').value.trim();
+    const password = $('#password').value;
+    if (!email || !password) { errEl.textContent = 'Enter email and password.'; return; }
+    try {
+      const r = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}));
+        errEl.textContent = j.error === 'auth_not_configured' ? 'Login not configured on the server.' : 'Invalid credentials.';
+        return;
+      }
+      sessionStorage.setItem('mmw_nl_authed', '1');
+      checkHealth();
+      route('dashboard');
+    } catch (e) { errEl.textContent = 'Network error. Try again.'; }
+  });
+  ['email', 'password'].forEach((id) => $('#' + id).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#login-btn').click(); }));
+
+  init();
+  </script>
+</body>
+</html>
