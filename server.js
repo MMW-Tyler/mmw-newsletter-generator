@@ -294,10 +294,21 @@ app.get(
       .eq('client_id', id)
       .order('created_at', { ascending: true });
 
+    const { data: newsletters } = await supabase
+      .from('newsletters')
+      .select('id, month, year, status')
+      .eq('client_id', id);
+
     const assetsByType = {};
     for (const a of assets || []) assetsByType[a.asset_type] = a;
 
-    res.json({ client, assets: assetsByType, rules: rules || [] });
+    const nlStatus = {};
+    for (const n of newsletters || []) {
+      const key = `${n.year}-${String(n.month).padStart(2, '0')}`;
+      nlStatus[key] = { status: n.status, id: n.id };
+    }
+
+    res.json({ client, assets: assetsByType, rules: rules || [], newsletter_status: nlStatus });
   })
 );
 

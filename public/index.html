@@ -260,7 +260,79 @@
       transition: filter 0.1s;
     }
     .status-cell:hover { filter: brightness(0.93); }
-    .status-cell.current-month { outline: 2px solid var(--primary); outline-offset: 1px; }
+    .status-cell.current-month { outline: 2px solid var(--green); outline-offset: 1px; }
+
+    .profile-layout { display: grid; grid-template-columns: 164px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 700px) { .profile-layout { grid-template-columns: 1fr; } }
+
+    .month-sidebar {
+      position: sticky;
+      top: 24px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 10px;
+    }
+    .sidebar-year-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 0 4px;
+    }
+    .sidebar-year-nav span {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    .sidebar-year-nav button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      padding: 0 4px;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .sidebar-year-nav button:hover { background: var(--bg); color: var(--dark); }
+    .month-cell {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Barlow', sans-serif;
+      color: var(--dark);
+      transition: background 0.1s;
+      margin-bottom: 1px;
+    }
+    .month-cell:hover { background: var(--bg); }
+    .month-cell.mc-current { background: var(--green-light); }
+    .month-cell .mc-name { flex: 1; }
+    .month-cell .mc-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .month-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: #d1d5db;
+    }
+    .month-dot.d-drafted { background: #f59e0b; }
+    .month-dot.d-in_review { background: #3b82f6; }
+    .month-dot.d-sent_for_approval { background: #8b5cf6; }
+    .month-dot.d-approved { background: var(--green); }
     .status-cell .month-label { font-size: 9px; opacity: 0.75; display: block; margin-bottom: 1px; }
     .status-cell.s-not_started { background: #f3f3f3; color: #888; }
     .status-cell.s-drafted { background: #fff4dd; color: #8a6300; border-color: #f7e0a7; }
@@ -907,6 +979,50 @@
   }
 
   // ============================================================
+  // MONTH SIDEBAR (used on client profile)
+  // ============================================================
+  function buildMonthSidebar(clientId, nlStatus) {
+    const now = new Date();
+    const curMonth = now.getMonth() + 1, curYear = now.getFullYear();
+    let viewYear = curYear;
+
+    const sidebar = el('div', { class: 'month-sidebar' });
+
+    function renderSidebar() {
+      sidebar.innerHTML = '';
+
+      sidebar.appendChild(el('div', { class: 'sidebar-year-nav' },
+        el('button', { onclick: () => { viewYear--; renderSidebar(); } }, '‹'),
+        el('span', {}, String(viewYear)),
+        el('button', { onclick: () => { viewYear++; renderSidebar(); } }, '›'),
+      ));
+
+      for (let m = 1; m <= 12; m++) {
+        const key = viewYear + '-' + String(m).padStart(2, '0');
+        const entry = nlStatus[key] || {};
+        const status = entry.status || 'not_started';
+        const nlId = entry.id || null;
+        const isCurrent = m === curMonth && viewYear === curYear;
+
+        const shortLabel = { drafted: 'Draft', in_review: 'Review', sent_for_approval: 'Sent', approved: 'Done' }[status] || '';
+        const cell = el('div', { class: 'month-cell' + (isCurrent ? ' mc-current' : '') },
+          el('span', { class: 'month-dot d-' + status }),
+          el('span', { class: 'mc-name' }, monthShort(m)),
+          shortLabel ? el('span', { class: 'mc-badge' }, shortLabel) : null,
+        );
+        cell.onclick = () => {
+          if (nlId) route('output', { id: nlId, client_id: clientId });
+          else route('generate', { id: clientId, month: m, year: viewYear });
+        };
+        sidebar.appendChild(cell);
+      }
+    }
+
+    renderSidebar();
+    return sidebar;
+  }
+
+  // ============================================================
   // CLIENT PROFILE
   // ============================================================
   async function renderClientProfile(root, id) {
@@ -931,8 +1047,17 @@
     const c = resp.client;
     const assets = resp.assets || {};
     const rules = resp.rules || [];
+    const nlStatus = resp.newsletter_status || {};
 
     root.innerHTML = '';
+    const layout = el('div', { class: 'profile-layout' });
+    root.appendChild(layout);
+
+    layout.appendChild(buildMonthSidebar(c.id, nlStatus));
+
+    const main = el('div', {});
+    layout.appendChild(main);
+
     const hero = el('div', { class: 'hero' });
     hero.appendChild(el('h1', {}, c.clinic_name));
     hero.appendChild(el('div', { class: 'row', style: 'gap:8px;margin-top:8px;' },
@@ -945,14 +1070,14 @@
       el('button', { class: 'btn btn-ghost', onclick: () => editClientMetaModal(c) }, 'Edit details'),
       el('button', { class: 'btn btn-danger', onclick: () => archiveClient(c) }, c.archived ? 'Unarchive' : 'Archive'),
     ));
-    root.appendChild(hero);
+    main.appendChild(hero);
 
-    root.appendChild(buildAssetCard(c.id, 'master_record', 'Master Record', 'Required. The core voice and service info every newsletter pulls from.', assets.master_record, true));
-    root.appendChild(buildAssetCard(c.id, 'brand_voice', 'Brand Voice Document', 'Optional. Free-form output from the website crawler tool.', assets.brand_voice, false));
+    main.appendChild(buildAssetCard(c.id, 'master_record', 'Master Record', 'Required. The core voice and service info every newsletter pulls from.', assets.master_record, true));
+    main.appendChild(buildAssetCard(c.id, 'brand_voice', 'Brand Voice Document', 'Optional. Free-form output from the website crawler tool.', assets.brand_voice, false));
     if (c.template_type === 'custom') {
-      root.appendChild(buildAssetCard(c.id, 'html_template', 'Custom HTML Template', 'The client\'s custom newsletter HTML.', assets.html_template, true));
+      main.appendChild(buildAssetCard(c.id, 'html_template', 'Custom HTML Template', 'The client\'s custom newsletter HTML.', assets.html_template, true));
     }
-    root.appendChild(buildRulesCard(c.id, rules));
+    main.appendChild(buildRulesCard(c.id, rules));
   }
 
   function buildAssetCard(clientId, type, label, sub, existingAsset, required) {
