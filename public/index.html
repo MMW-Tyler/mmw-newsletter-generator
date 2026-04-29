@@ -256,7 +256,11 @@
       background: #f3f3f3;
       color: var(--muted);
       border: 1px solid var(--border-soft);
+      cursor: pointer;
+      transition: filter 0.1s;
     }
+    .status-cell:hover { filter: brightness(0.93); }
+    .status-cell.current-month { outline: 2px solid var(--primary); outline-offset: 1px; }
     .status-cell .month-label { font-size: 9px; opacity: 0.75; display: block; margin-bottom: 1px; }
     .status-cell.s-not_started { background: #f3f3f3; color: #888; }
     .status-cell.s-drafted { background: #fff4dd; color: #8a6300; border-color: #f7e0a7; }
@@ -543,7 +547,7 @@
     if (state.page === 'dashboard') renderDashboard(root);
     else if (state.page === 'aes') renderAEs(root);
     else if (state.page === 'client_profile') renderClientProfile(root, state.pageArgs.id);
-    else if (state.page === 'generate') renderGenerate(root, state.pageArgs.id);
+    else if (state.page === 'generate') renderGenerate(root, state.pageArgs.id, state.pageArgs.month, state.pageArgs.year);
     else if (state.page === 'output') renderOutput(root, state.pageArgs.id);
   }
 
@@ -657,22 +661,33 @@
     ));
     card.appendChild(el('div', { class: 'ae-line' }, c.ae ? 'AE: ' + c.ae.name : 'No AE assigned'));
 
-    // Rolling 3-month status grid
+    // 3-month status grid centered on current month (prev, current, next)
     const now = new Date();
     const months = [];
-    for (let i = 2; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    for (let i = -1; i <= 1; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
       months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
     }
     const sgrid = el('div', { class: 'status-grid' });
     const recent = state.recent_status[c.id] || {};
+    const curMonth = now.getMonth() + 1, curYear = now.getFullYear();
     for (const m of months) {
       const key = m.year + '-' + String(m.month).padStart(2, '0');
-      const status = recent[key] || 'not_started';
-      sgrid.appendChild(el('div', { class: 'status-cell s-' + status, title: monthName(m.month) + ' ' + m.year + ': ' + statusLabel(status) },
+      const entry = recent[key] || {};
+      const status = entry.status || 'not_started';
+      const nlId = entry.id || null;
+      const isCurrent = m.month === curMonth && m.year === curYear;
+      const cellClass = 'status-cell s-' + status + (isCurrent ? ' current-month' : '');
+      const cell = el('div', { class: cellClass, title: monthName(m.month) + ' ' + m.year + ': ' + statusLabel(status) },
         el('span', { class: 'month-label' }, monthShort(m.month)),
         statusLabel(status).split(' ')[0]
-      ));
+      );
+      cell.onclick = (e) => {
+        e.stopPropagation();
+        if (nlId) route('output', { id: nlId, client_id: c.id });
+        else route('generate', { id: c.id, month: m.month, year: m.year });
+      };
+      sgrid.appendChild(cell);
     }
     card.appendChild(sgrid);
 
@@ -1052,7 +1067,7 @@
   // ============================================================
   // GENERATE PAGE
   // ============================================================
-  async function renderGenerate(root, clientId) {
+  async function renderGenerate(root, clientId, initMonth, initYear) {
     const myVersion = state._renderVersion;
     root.appendChild(el('div', { class: 'text-muted text-small', style: 'text-align:center;padding:40px' }, 'Loading...'));
 
@@ -1066,7 +1081,7 @@
     const customNeedsTemplate = c.template_type === 'custom' && !(resp.assets && resp.assets.html_template);
 
     const now = new Date();
-    let month = now.getMonth() + 1, year = now.getFullYear();
+    let month = initMonth || now.getMonth() + 1, year = initYear || now.getFullYear();
     let topic = '', features = '', links = [], selectedEvents = new Set();
 
     root.innerHTML = '';

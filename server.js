@@ -229,18 +229,18 @@ app.get(
     if (clientIds.length > 0) {
       const { data: nl, error: eN } = await supabase
         .from('newsletters')
-        .select('client_id, month, year, status')
+        .select('id, client_id, month, year, status')
         .in('client_id', clientIds);
       if (eN) return bad(res, 500, eN.message);
       recent = nl || [];
     }
 
-    // Map: { clientId: { 'YYYY-MM': status } }
+    // Map: { clientId: { 'YYYY-MM': { status, id } } }
     const byClient = {};
     for (const r of recent) {
       const key = `${r.year}-${String(r.month).padStart(2, '0')}`;
       byClient[r.client_id] = byClient[r.client_id] || {};
-      byClient[r.client_id][key] = r.status;
+      byClient[r.client_id][key] = { status: r.status, id: r.id };
     }
 
     res.json({ clients: data, recent_status: byClient });
