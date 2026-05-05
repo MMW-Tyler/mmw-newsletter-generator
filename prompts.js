@@ -19,6 +19,24 @@ const SHARED_RULES = `
 - Match the client's documented voice and word preferences from their master record and brand voice document. When the master record uses "patients" instead of "clients" (or vice versa), follow it. When it bans certain words, do not use them.
 - 60% educational, 40% promotional is the default mix unless the client's master record indicates otherwise.
 
+=== POSITIONING HIERARCHY (READ BRAND VOICE DOC FIRST) ===
+Before drafting, scan the brand voice document for an explicit positioning order, focus areas, service hierarchy, or any list that ranks what the clinic leads with versus supports with. If one is present:
+- The first item in that order is the lead. It belongs in the most prominent slot available given the month's context (typically [[ARTICLE_TWO_COLUMN]] or [[HIGHLIGHT_BLOCK]]).
+- Subsequent items get progressively less prominent placement.
+- The last item in the order should not be the featured topic of the month unless the AE's "what to feature" input explicitly directs it there.
+- This ordering outranks generic calendar/awareness-day pulls. Awareness days support the lead positioning, they do not override it.
+If no hierarchy is documented, fall back to the calendar and features inputs as written.
+
+=== CLIENT-SPECIFIC EXCLUSIONS ===
+Treat the master record and brand voice document as authoritative filters. Before producing any block, extract any section labeled "things to avoid", "do not use", "avoid", "off-brand", "banned phrases", or similar. Every phrase, topic, framing, or terminology listed there is banned for this output, in addition to the email deliverability bans below. Common patterns to watch for:
+- Vague wellness language the client has rejected ("holistic journey", "wellness warrior", etc.)
+- Hype phrases the client has rejected
+- Functional medicine or modality terminology a client may not want associated with their brand
+If a phrase appears in both the brand voice doc as preferred and the master record as banned, the master record wins.
+
+=== PRODUCT, DEVICE, AND SERVICE NAMING (HARD RULE) ===
+Do not name any specific product, device, brand, medication, or trademarked service unless that exact name appears in the master record, brand voice document, custom client rules, "what to feature this month" input, or provided links. This includes (non-exhaustive): ellacor®, Morpheus8, Emsculpt, CoolSculpting, Sculptra, Botox, Dysport, SkinPen, Hydrafacial, Semaglutide brand names, specific lab panel brands, etc. When the concept is needed but the brand is not confirmed, use a generic descriptor instead ("a fractional resurfacing treatment", "a microneedling with radiofrequency device", "a GLP-1 medication"). When in doubt, generic descriptor wins.
+
 === EMAIL DELIVERABILITY (NON-NEGOTIABLE) ===
 The output is going into an email. Spam-trigger words and patterns hurt deliverability. Avoid them.
 
@@ -197,6 +215,9 @@ ${masterRecord || '(no master record on file)'}
 === BRAND VOICE DOCUMENT ===
 ${brandVoice || '(none on file)'}
 
+=== APPLY THE BRAND VOICE AND MASTER RECORD AS AUTHORITATIVE ===
+Before drafting, identify (a) the positioning hierarchy in the brand voice document and (b) any "things to avoid" or banned-phrase list in the master record. The lead position belongs to the first item in the hierarchy. The banned list filters every block of output. If neither is documented, proceed with the calendar and features inputs as written.
+
 === CUSTOM CLIENT RULES ===
 ${formatRules(customRules)}
 
@@ -206,8 +227,10 @@ ${formatCalendar(calendar)}
 === TOPIC / THEME FOR THIS MONTH ===
 ${topic || '(no specific theme , pick one that fits the calendar context and clinic vertical)'}
 
-=== WHAT TO FEATURE THIS MONTH ===
-${features || '(no specific features , pull naturally from the master record)'}
+=== WHAT TO FEATURE THIS MONTH (HIGHEST-PRIORITY REAL-TIME CONTEXT) ===
+This field captures what is actually happening at the clinic right now: new devices, training schedules, recent results, staff updates, partnerships, events, specials, lead stories the AE wants surfaced. When this field is populated, it OUTRANKS the calendar and awareness days for selecting the lead featured topic. Surface it in the most prominent slot consistent with the brand voice positioning hierarchy. Do not bury a lead story (a confirmed new device, a featured procedure for the month, a launch) in the highlight block or recipe.
+
+${features || '(no specific features , pull naturally from the master record and the positioning hierarchy)'}
 
 === LINKS TO WEAVE IN (use the label as anchor text in the appropriate section) ===
 ${formatLinks(links)}${lastMonthBlock}${customTemplateBlock}

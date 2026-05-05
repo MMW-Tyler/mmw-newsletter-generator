@@ -1291,8 +1291,8 @@
     ));
 
     card.appendChild(el('div', { class: 'input-row' },
-      el('label', {}, 'What to feature this month', tip('Free-form. Treatments, events, specials, partnerships.')),
-      el('textarea', { class: 'textarea', placeholder: 'e.g. Featuring our new TempSure Envi treatment, holiday gift cards...', oninput: (e) => { features = e.target.value; } })
+      el('label', {}, 'What to feature this month', tip('Anything happening at the clinic this month: new devices, training, recent results, staff updates, partnerships, events, specials, lead stories. This outranks the calendar for picking the lead topic.')),
+      el('textarea', { class: 'textarea', placeholder: 'e.g. ellacor® launched this month — make it the lead. New RF microneedling device arriving mid-month. Provider just completed advanced injector training.', oninput: (e) => { features = e.target.value; } })
     ));
 
     card.appendChild(el('div', { class: 'label-small' }, 'Links to weave in',
